@@ -1,16 +1,18 @@
+#!/usr/bin/env python3
+
 import os
-import urllib, urllib2
+import urllib.request, urllib.parse, urllib.error
 import csv
 import re
 import time
-import httplib
+import http.client
 
 from bs4 import BeautifulSoup
 
 CACHE_DIR = os.path.join(os.path.dirname(__file__), 'cache')
 LIST_SONG_DIR = "list-songs.csv"
 BILLBOARD_TOP_HITS = "http://www.billboard.com/charts/year-end/%s/hot-r-and-and-b-hip-hop-songs"
-BILLBOARD_ANNUAL_MAX = 20
+BILLBOARD_ANNUAL_MAX = 25
 LYRICS_SEARCH_URL = "http://search.azlyrics.com/search.php?q=%s&w=songs&p=%d"
 
 
@@ -32,7 +34,7 @@ class Helper:
     @staticmethod
     def write_text_file(file_name, data, perm):
         with open(file_name, perm) as text_file:
-            text_file.write("%s" % data.encode('utf-8'))
+            text_file.write("%s" % data)
 
     @staticmethod
     def create_dir(dir_path):
@@ -42,23 +44,24 @@ class Helper:
     # Get url page content
     @staticmethod
     def get_page(url):
+        if url is None or url.strip() is "":
+            return
+
         time.sleep(1)
 
         hdr = {
-            'User-Agent': 'Mozilla/5.0',
+            'User-Agent': 'Mozilla/5.0 (Windows NT 6.0; WOW64; rv:24.0) Gecko/20100101 Firefox/24.0',
             'content-type': "application/json",
-            'cache-control': "no-cache",
-            'postman-token': "426eb93e-6e71-74dc-c275-2d528d0e4390",
         }
 
-        req = urllib2.Request(url, headers=hdr)
+        req = urllib.request.Request(url, headers=hdr)
         try:
-            response = urllib2.urlopen(req)
-            return response.read()
-        except urllib2.HTTPError as err:
-            print "HTTPError: Url %s Error %s" % (url, err)
-        except httplib.BadStatusLine as err:
-            print "BadStatusLine: Url %s Error %s. " % (url, err)
+            with urllib.request.urlopen(req, timeout=10) as resp:
+                return resp.read()
+        except urllib.error.HTTPError as err:
+            print("HTTPError: Url %s Error %s" % (url, err))
+        except http.client.BadStatusLine as err:
+            print("BadStatusLine: Url %s Error %s. " % (url, err))
 
         return None
 
@@ -121,7 +124,7 @@ class SongScraper:
                                 quoting=csv.QUOTE_ALL)
 
             for song in self.songs:
-                writer.writerow(vars(song).values())
+                writer.writerow(list(vars(song).values()))
 
     class ScrapeSongLyrics:
         link = ""
@@ -166,15 +169,41 @@ class SongScraper:
             self.find_lyrics_link(pages_count)
 
         def get_lyrics(self):
-            print "%s %s lyrics. Link: %s" % (self.song.author, self.song.name, self.link)
-
+            print("%s %s lyrics. Link: %s" % (self.song.author, self.song.name, self.link))
             page = Helper.get_page(self.link)
             if page is None:
                 return
 
             soup = BeautifulSoup(page, "html.parser", from_encoding="utf-8")
-            Helper.write_text_file("%s-%s-%s.html" %
-                                   (self.dir_path, self.song.name, self.song.author), soup.prettify(), 'w+')
+            t = soup.prettify()
+            t = t.split("<!-- Usage of azlyrics.com content by any third-party lyrics provider is prohibited by our licensing agreement. Sorry about that. -->", 1)[-1]
+            t = t.split("<!-- MxM banner -->", 1)[0]
+
+            t1 = t.replace('<br/>', '').replace('<i>', '').replace('</i>', '').replace('</div>', '')
+            t3 = t1.split('\n')
+
+            t4 = '\n'.join([line.strip() for line in t3 if line.strip() != ""])
+            t4 = self.consume_paren(t4)
+
+            Helper.write_text_file("%s/%s-%s.txt" %
+                                   (self.dir_path, self.song.name.replace("/", "-"), self.song.author), t4, 'w+')
+
+        def consume_paren(self, text):
+            ret = ''
+            skip1c = 0
+            skip2c = 0
+            for i in text:
+                if i == '[':
+                    skip1c += 1
+                elif i == '(':
+                    skip2c += 1
+                elif i == ']' and skip1c > 0:
+                    skip1c -= 1
+                elif i == ')' and skip2c > 0:
+                    skip2c -= 1
+                elif skip1c == 0 and skip2c == 0:
+                    ret += i
+            return ret
 
         def save_lyrics(self):
             pass
@@ -182,10 +211,11 @@ class SongScraper:
 
 if __name__ == '__main__':
     start = 2014
-    end = 2014
+    end = 2016
 
     try:
         for year in range(start, end + 1):
+            print("Retrieving lyrics for %d" % year)
             SongScraper(Lyrics(year).get_songs()).scrape()
     except KeyboardInterrupt:
-        print "[Interrupted] Exiting the program"
+        print("[Interrupted] Exiting the program")
