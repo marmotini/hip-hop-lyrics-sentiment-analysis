@@ -71,6 +71,8 @@ class SongScraper:
             song.polarity = cb(ss.content)
 
             writer.writerow(list(vars(song).values()))
+            f.flush()
+            os.fsync(f.fileno())
 
         f.close()
 
