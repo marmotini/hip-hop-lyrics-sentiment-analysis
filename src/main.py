@@ -5,6 +5,7 @@ if __name__ == '__main__':
     start = 2014
     end = 2016
 
+    #
     try:
         for year in range(start, end + 1):
             print("Retrieving lyrics for %d" % year)

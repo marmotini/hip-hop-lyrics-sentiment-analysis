@@ -68,7 +68,7 @@ class SongScraper:
 
         for song in self.songs:
             ss = self.ScrapeSongLyrics(song)
-            song.polarity = cb(ss.content)
+            song.polarity = cb(ss.content, song)
 
             writer.writerow(list(vars(song).values()))
             f.flush()
