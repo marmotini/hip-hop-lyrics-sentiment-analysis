@@ -1,3 +1,26 @@
+### Hip Hop Hits Sentiments Analysis
+
+In this project, top hip hop hits lyrics are retrieved and analysis. The list of hip hop
+songs are retrieved from billboard chart list. The song's details are then searched on
+azlyrics and if the lyrics' link is found, the scraper downloads and cleans up the lyrics.
+The analysis uses nltk SentimentIntensityAnalyzer to calculate the lyrics polarity.
+
+### Background
+
+Music has a significant effect on the listener’s psychological stress response and behavior.
+According to a research done by Myriam Thoma, Roberto La Marca, Rebecca Brönnimann, Linda Finkel, 
+Ulrike Ehlert, and Urs Nater on The Effects of Music on the Human Stress Response, music
+listening impacted the psychobiological stress system. According to the research, listening to
+music prior to a standardized stressor predominantly affected the autonomic nervous system and
+to a lesser degree the endocrine and psychological stress response.
+
+### Scraping
+
+Retrieval of data was done using python3 and python's BeautifulSoup library. The data was scraped
+and cleaned in python. Below is the scraping and cleanup script used. the lyrics are saved in the
+cache folder
+
+```python
 #!/usr/bin/env python3
 
 import os
@@ -154,7 +177,8 @@ class SongScraper:
             soup = BeautifulSoup(page, "html.parser", from_encoding="utf-8")
             t = soup.prettify()
             t = t.split(
-                "<!-- Usage of azlyrics.com content by any third-party lyrics provider is prohibited by our licensing agreement. Sorry about that. -->",
+                "<!-- Usage of azlyrics.com content by any third-party lyrics provider is
+                prohibited by our licensing agreement. Sorry about that. -->",
                 1)[-1]
             t = t.split("<!-- MxM banner -->", 1)[0]
 
@@ -186,3 +210,55 @@ class SongScraper:
                                    (self.dir_path, self.song.name.replace("/", "-"), self.song.author),
                                    self.content, 'w+')
 
+
+```
+
+### Analysis
+
+ Analysis is done using nltk tool. Below is the analysis scrip
+
+ ```python
+
+ from nltk.sentiment.vader import SentimentIntensityAnalyzer
+
+v = None
+
+
+def analyze_lyrics(lyrics, song):
+    sid = SentimentIntensityAnalyzer()
+    polarity = sid.polarity_scores(lyrics)
+
+    global v
+
+    if v is None:
+        v = Visualizer()
+
+    v.visualize(polarity, song)
+
+    return polarity
+
+
+class Visualizer:
+    def __init__(self):
+        pass
+
+    def visualize(self, polarity, song):
+        print("Polarity: {0}, Song: {1}".format(polarity, song))
+
+        pass
+
+ ```
+
+ ### Running the project
+
+The project can be ran using the make file. The command `make run` will start the project.
+In the command line, the details of the song and the polarity of the song are displayed
+after the song is scraped and analyzed. Below are the content found in the Makefile
+
+```text
+run:
+	@python3 src/main.py
+
+setup:
+	@pip3 install -U -r requirements.txt
+```
