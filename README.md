@@ -213,13 +213,14 @@ class SongScraper:
 
 ```
 
+
 ### Analysis
 
- Analysis is done using nltk tool. Below is the analysis scrip
+ Analysis is done using nltk tool. Below is the analysis script.
 
- ```python
-
- from nltk.sentiment.vader import SentimentIntensityAnalyzer
+```python
+#!/usr/bin/env python3
+from nltk.sentiment.vader import SentimentIntensityAnalyzer
 
 v = None
 
@@ -247,9 +248,10 @@ class Visualizer:
 
         pass
 
- ```
+```
 
- ### Running the project
+
+### Running the project
 
 The project can be ran using the make file. The command `make run` will start the project.
 In the command line, the details of the song and the polarity of the song are displayed
@@ -262,3 +264,21 @@ run:
 setup:
 	@pip3 install -U -r requirements.txt
 ```
+
+<br/>
+### Sample Output
+
+Below is the sample output
+
+````text
+"{'neu': 0.724, 'compound': 0.9885, 'neg': 0.058, 'pos': 0.217}","Happy","1","2014","Pharrell Williams"
+"{'neu': 0.708, 'compound': 0.9924, 'neg': 0.103, 'pos': 0.189}","All Of Me","2","2014","John Legend"
+"{'neu': 0.805, 'compound': 0.9924, 'neg': 0.046, 'pos': 0.149}","Fancy","3","2014","Iggy Azalea Featuring Charli Xcx"
+"{'neu': 0.814, 'compound': -0.9823, 'neg': 0.138, 'pos': 0.048}","Talk Dirty","4","2014","Jason Derulo Featuring 2 Chainz"
+"{'neu': 0.713, 'compound': 0.9872, 'neg': 0.12, 'pos': 0.167}","The Monster","5","2014","Eminem Featuring Rihanna"
+````
+
+#### TO DO in the final project
+1. Work on the polarity visualization
+2. Improve on the polarity calculations
+
