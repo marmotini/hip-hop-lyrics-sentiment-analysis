@@ -42,11 +42,17 @@ class Lyrics:
             if len(songs) >= BILLBOARD_ANNUAL_MAX:
                 break
 
-            songs.append(Song(
+            author = s.find(attrs={"class": "ye-chart__item-subtitle"})
+            if author is None:
+                continue
+
+            song = Song(
                 rank=s.find(attrs={"class": "ye-chart__item-rank"}).get_text().strip(),
                 name=s.find(attrs={"class": "ye-chart__item-title"}).get_text().strip(),
-                author=s.find(attrs={"class": "ye-chart__item-subtitle-link"}).get_text().strip(),
-                yr=self.year))
+                author=author.get_text().strip(),
+                yr=self.year)
+
+            songs.append(song)
 
         # Save the billboard html site to file
         Helper.write_text_file("%s.html" % self.gen_link_from_name(), soup.prettify(), 'w+')
@@ -77,9 +83,9 @@ class SongScraper:
 
         for song in self.songs:
             ss = self.ScrapeSongLyrics(song)
-            song.polarity = cb(ss.content, song)
+            song.polarity = cb(ss.content)
 
-            writer.writerow(list(vars(song).values()))
+            writer.writerow(song)
             f.flush()
             os.fsync(f.fileno())
 

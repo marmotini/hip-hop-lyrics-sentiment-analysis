@@ -7,6 +7,13 @@ class Song:
 
         self.polarity = 0
 
+    def __iter__(self):
+        return iter([self.author, self.name, self.year, self.rank, self.polarity])
+
     def __str__(self):
+        return "Author: %s, Name: %s, Year: %s, Rank: %s, Polarity: %s"\
+               % (self.author, self.name, self.year, self.rank, self.polarity)
+
+    def __repr__(self):
         return "Author: %s, Name: %s, Year: %s, Rank: %s, Polarity: %s"\
                % (self.author, self.name, self.year, self.rank, self.polarity)
